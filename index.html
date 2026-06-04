@@ -3,46 +3,657 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Style Lab</title>
+  <title>Style Lab — tweak UI elements & copy the CSS</title>
   <meta name="description" content="Tweak UI elements and copy the CSS to use anywhere">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎨%3C/text%3E%3C/svg%3E">
   <style>
-    :root{ --bg:#FFB84D; --ink:#2b2b29; --muted:#74726a; --panel:#fffaf0; --line:#2b2b29; --accent:#D56062; }
-    [data-theme="dark"]{ --bg:#3f403e; --ink:#FFB84D; --muted:#b9b08f; --panel:#4b4c49; --line:#1b1b1a; --accent:#ff9aa0; }
+    /* ===== A. Solhann tokens & base ===== */
+    :root{ --bg:#FFB84D; --ink:#2b2b29; --muted:#74726a; --panel:#fffaf0; --line:#2b2b29; --accent:#D56062; --ok:#3a8a4f; --warn:#c47a00; }
+    [data-theme="dark"]{ --bg:#3f403e; --ink:#FFB84D; --muted:#b9b08f; --panel:#4b4c49; --line:#1b1b1a; --accent:#ff9aa0; --ok:#7bd28e; --warn:#ffce6e; }
     *{ margin:0; box-sizing:border-box; }
-    body{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
-      font-family:"Orbitron",sans-serif; color:var(--ink); background:var(--bg); padding:24px; text-align:center;
-      transition:background-color .25s, color .25s; }
-    .toggle{ position:fixed; top:14px; right:14px; font-family:"Press Start 2P",monospace; font-size:9px;
+    html,body{ height:100%; }
+    body{ font-family:"Orbitron",sans-serif; color:var(--ink); background:var(--bg);
+      padding:14px 14px 40px; transition:background-color .25s, color .25s; }
+
+    /* ===== B. App chrome — all selectors are .sl-app-* scoped, never bare ===== */
+    .theme-toggle{ position:fixed; top:14px; right:14px; font-family:"Press Start 2P",monospace; font-size:9px;
       padding:9px 11px; border:3px solid var(--line); border-radius:6px; background:var(--panel); color:var(--ink);
-      cursor:pointer; box-shadow:3px 3px 0 var(--line); }
-    .toggle:active{ transform:translate(2px,2px); box-shadow:none; }
-    .emoji{ font-size:clamp(3.5rem,16vw,6rem); filter:drop-shadow(3px 4px 0 rgba(0,0,0,.18)); }
-    h1{ font-family:"Press Start 2P",monospace; font-size:clamp(1rem,5vw,2rem); line-height:1.5; margin:18px 0 10px;
+      cursor:pointer; box-shadow:3px 3px 0 var(--line); z-index:50; }
+    .theme-toggle:active{ transform:translate(2px,2px); box-shadow:none; }
+
+    .topbar{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding-right:90px; }
+    .topbar .brand{ display:flex; align-items:center; gap:10px; }
+    .topbar .brand .emoji{ font-size:36px; filter:drop-shadow(3px 4px 0 rgba(0,0,0,.18)); }
+    .topbar h1{ font-family:"Press Start 2P",monospace; font-size:clamp(.85rem,2vw,1.05rem); line-height:1.3;
       text-shadow:3px 3px 0 var(--line); }
-    p.desc{ max-width:46ch; font-weight:500; color:var(--muted); line-height:1.6; }
-    .badge{ margin-top:26px; font-family:"Press Start 2P",monospace; font-size:9px; color:var(--accent);
-      border:3px solid var(--line); border-radius:6px; padding:12px 16px; background:var(--panel);
-      box-shadow:4px 4px 0 var(--line); }
-    a.home{ margin-top:22px; font-weight:700; color:var(--accent); text-decoration:none; letter-spacing:.1em; }
+    .topbar .sub{ color:var(--muted); font-size:12px; margin-top:4px; }
+    .topbar .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-left:auto; }
+
+    .panel{ background:var(--panel); border:3px solid var(--line); border-radius:8px;
+      box-shadow:5px 5px 0 var(--line); padding:16px; }
+
+    .lab{ display:grid; grid-template-columns:170px 1fr 320px; gap:14px; margin-top:14px; }
+    @media (max-width:1000px){ .lab{ grid-template-columns:1fr; } }
+
+    .rail h3{ font-family:"Press Start 2P",monospace; font-size:10px; color:var(--accent); margin-bottom:10px; }
+    .rail-left .elements{ display:flex; flex-direction:column; gap:8px; }
+    @media (max-width:1000px){ .rail-left .elements{ flex-direction:row; flex-wrap:wrap; } }
+
+    .el-btn{ font-family:"Press Start 2P",monospace; font-size:10px; padding:11px 12px;
+      border:3px solid var(--line); border-radius:6px; background:var(--panel); color:var(--ink);
+      cursor:pointer; box-shadow:3px 3px 0 var(--line); text-align:left; display:flex; align-items:center; gap:8px; }
+    .el-btn:active{ transform:translate(2px,2px); box-shadow:none; }
+    .el-btn.on{ background:var(--accent); color:#fff; }
+    .el-btn .glyph{ font-family:"Orbitron",sans-serif; font-size:14px; }
+
+    .canvas{ min-height:340px; display:flex; flex-direction:column; }
+    .canvas .canvas-title{ font-family:"Press Start 2P",monospace; font-size:11px; color:var(--accent); margin-bottom:14px; }
+    .preview-frame{ flex:1; background:
+        repeating-conic-gradient(rgba(0,0,0,.04) 0% 25%, transparent 0% 50%) 50% / 24px 24px;
+      border:3px dashed var(--line); border-radius:8px; padding:24px; display:flex; align-items:center; justify-content:center; }
+    [data-theme="dark"] .preview-frame{ background:
+        repeating-conic-gradient(rgba(255,255,255,.05) 0% 25%, transparent 0% 50%) 50% / 24px 24px; }
+    .sl-preview-surface{ width:100%; max-width:520px; display:flex; flex-direction:column; gap:14px; align-items:stretch;
+      font-family:"Orbitron",sans-serif; color:#1a1a1a; }
+    .sl-preview-surface .preview-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    .rail-right{ max-height:calc(100vh - 80px); overflow:auto; }
+    .control{ margin-bottom:12px; }
+    .control label{ display:flex; justify-content:space-between; align-items:center;
+      font-family:"Press Start 2P",monospace; font-size:9px; color:var(--muted); margin-bottom:6px; gap:8px; }
+    .control label .val{ color:var(--ink); font-family:"Orbitron",sans-serif; font-size:11px; font-weight:700; }
+    .control input[type=range]{ width:100%; }
+    .control input[type=color]{ width:48px; height:32px; padding:0; border:3px solid var(--line); border-radius:6px;
+      background:var(--panel); cursor:pointer; }
+    .control .color-row{ display:flex; align-items:center; gap:10px; }
+    .control .color-row code{ font-family:ui-monospace,Menlo,monospace; font-size:11px; color:var(--muted); }
+    .control select{ font-family:"Orbitron",sans-serif; font-size:13px; padding:8px 10px; width:100%;
+      border:3px solid var(--line); border-radius:6px; background:var(--panel); color:var(--ink); }
+    .control.toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:8px 10px; border:3px solid var(--line); border-radius:6px; background:var(--panel); margin-bottom:12px; }
+    .control.toggle-row label{ margin:0; }
+    .control.toggle-row input[type=checkbox]{ width:20px; height:20px; cursor:pointer; }
+
+    .seg{ display:inline-flex; border:3px solid var(--line); border-radius:6px; overflow:hidden; box-shadow:3px 3px 0 var(--line); }
+    .seg button{ font-family:"Press Start 2P",monospace; font-size:9px; padding:9px 10px; background:var(--panel);
+      color:var(--ink); border:0; cursor:pointer; }
+    .seg button + button{ border-left:3px solid var(--line); }
+    .seg button.on{ background:var(--accent); color:#fff; }
+
+    .topbar select{ font-family:"Orbitron",sans-serif; font-size:12px; padding:8px 10px;
+      border:3px solid var(--line); border-radius:6px; background:var(--panel); color:var(--ink); box-shadow:3px 3px 0 var(--line); cursor:pointer; }
+
+    .btn-primary{ font-family:"Press Start 2P",monospace; font-size:10px; padding:11px 14px;
+      border:3px solid var(--line); border-radius:6px; background:var(--accent); color:#fff;
+      cursor:pointer; box-shadow:3px 3px 0 var(--line); }
+    .btn-primary:active{ transform:translate(2px,2px); box-shadow:none; }
+
+    .code-panel{ margin-top:14px; }
+    .code-panel summary{ font-family:"Press Start 2P",monospace; font-size:10px; color:var(--accent); cursor:pointer; padding:10px 0; }
+    .code-panel pre{ background:#1d1d1b; color:#eaeaea; padding:14px; border-radius:6px; border:3px solid var(--line);
+      overflow:auto; max-height:340px; font-family:ui-monospace,Menlo,monospace; font-size:12px; line-height:1.5; }
+    .code-panel .code-actions{ display:flex; gap:10px; margin-top:10px; }
+
+    .toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
+      background:var(--ok); color:#fff; font-family:"Press Start 2P",monospace; font-size:10px;
+      padding:12px 16px; border:3px solid var(--line); border-radius:6px; box-shadow:3px 3px 0 var(--line);
+      opacity:0; pointer-events:none; transition:transform .2s, opacity .2s; z-index:100; }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.err{ background:var(--accent); }
+
+    a.home{ display:inline-block; margin-top:24px; font-weight:700; color:var(--accent); text-decoration:none; letter-spacing:.1em; font-size:13px; }
     a.home:hover{ text-decoration:underline; }
   </style>
 </head>
 <body>
-  <button class="toggle" id="t" type="button">DARK</button>
-  <div class="emoji">🎨</div>
-  <h1>Style Lab</h1>
-  <p class="desc">Tweak UI elements and copy the CSS to use anywhere</p>
-  <div class="badge">&#9656; LIVE AT style-lab.solhann.net &mdash; START BUILDING</div>
-  <a class="home" href="https://create.solhann.net">&larr; back to the gallery</a>
+  <button class="theme-toggle" id="themeToggle" type="button">DARK</button>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="emoji">🎨</div>
+      <div>
+        <h1>Style Lab</h1>
+        <div class="sub">Tweak. Preview. Copy.</div>
+      </div>
+    </div>
+    <div class="actions">
+      <select id="presetSel" title="Preset">
+        <option value="neutral">PRESET · Neutral</option>
+        <option value="solhann">PRESET · Solhann</option>
+        <option value="brutalist">PRESET · Brutalist</option>
+        <option value="minimal">PRESET · Minimal</option>
+        <option value="material">PRESET · Material</option>
+      </select>
+      <div class="seg" id="modeSeg" role="tablist" aria-label="Output mode">
+        <button data-mode="raw" class="on">RAW CSS</button>
+        <button data-mode="tokens">TOKENS</button>
+      </div>
+      <button class="btn-primary" id="copyTop" type="button">COPY CSS</button>
+    </div>
+  </header>
+
+  <main class="lab">
+    <nav class="rail rail-left panel" aria-label="Element picker">
+      <h3>▸ ELEMENT</h3>
+      <div class="elements" id="elementList"></div>
+    </nav>
+
+    <section class="canvas panel">
+      <div class="canvas-title" id="canvasTitle">▸ PREVIEW</div>
+      <div class="preview-frame">
+        <div class="sl-preview-surface" id="previewSurface"></div>
+      </div>
+    </section>
+
+    <aside class="rail rail-right panel" aria-label="Controls">
+      <h3>▸ CONTROLS</h3>
+      <div id="controls"></div>
+    </aside>
+  </main>
+
+  <details class="code-panel panel" id="codePanel" open>
+    <summary>▸ GENERATED CSS — paste anywhere</summary>
+    <pre><code id="codeOut"></code></pre>
+    <div class="code-actions">
+      <button class="btn-primary" id="copyBottom" type="button">COPY CSS</button>
+    </div>
+  </details>
+
+  <a class="home" href="https://create.solhann.net">← back to the gallery</a>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
-    const r=document.documentElement,b=document.getElementById('t');
-    const set=t=>{r.setAttribute('data-theme',t);b.textContent=t==='dark'?'LIGHT':'DARK';localStorage.setItem('solhann_theme',t)};
-    set(localStorage.getItem('solhann_theme')||'light');
-    b.onclick=()=>set(r.getAttribute('data-theme')==='dark'?'light':'dark');
+  (() => {
+    const $ = id => document.getElementById(id);
+    const r = document.documentElement, tBtn = $('themeToggle');
+    const setTheme = t => { r.setAttribute('data-theme', t); tBtn.textContent = t === 'dark' ? 'LIGHT' : 'DARK'; try{ localStorage.setItem('solhann_theme', t); }catch(_){} };
+    try{ setTheme(localStorage.getItem('solhann_theme') || 'light'); }catch(_){ setTheme('light'); }
+    tBtn.onclick = () => setTheme(r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+    // ---- Element list, schema, defaults ----
+    const ELEMENTS = [
+      { key:'button',  label:'BUTTON',  glyph:'◧' },
+      { key:'card',    label:'CARD',    glyph:'▢' },
+      { key:'table',   label:'TABLE',   glyph:'☷' },
+      { key:'input',   label:'INPUT',   glyph:'▭' },
+      { key:'gallery', label:'GALLERY', glyph:'⊞' },
+      { key:'badge',   label:'BADGE',   glyph:'◉' },
+    ];
+
+    const CONTROLS = {
+      bg:          { type:'color',  label:'BACKGROUND' },
+      fg:          { type:'color',  label:'TEXT' },
+      borderColor: { type:'color',  label:'BORDER COLOR' },
+      borderW:     { type:'range',  label:'BORDER WIDTH', min:0, max:8,  step:1, suffix:'px' },
+      radius:      { type:'range',  label:'RADIUS',       min:0, max:40, step:1, suffix:'px' },
+      padding:     { type:'range',  label:'PADDING',      min:0, max:40, step:1, suffix:'px' },
+      fontSize:    { type:'range',  label:'FONT SIZE',    min:10, max:32, step:1, suffix:'px' },
+      fontWeight:  { type:'select', label:'FONT WEIGHT',  options:['400','600','700','900'] },
+      shadow:      { type:'select', label:'SHADOW',       options:['none','soft','hard-offset','lifted'] },
+      striped:     { type:'toggle', label:'STRIPED ROWS' },
+      rowHover:    { type:'color',  label:'ROW HOVER' },
+      cols:        { type:'range',  label:'COLUMNS', min:1, max:6, step:1 },
+      gap:         { type:'range',  label:'GAP', min:0, max:32, step:1, suffix:'px' },
+      pill:        { type:'toggle', label:'PILL SHAPE' },
+    };
+
+    const SCHEMA = {
+      button:  ['bg','fg','borderColor','borderW','radius','padding','fontSize','fontWeight','shadow'],
+      card:    ['bg','fg','borderColor','borderW','radius','padding','shadow'],
+      table:   ['bg','fg','borderColor','borderW','radius','padding','fontSize','striped','rowHover'],
+      input:   ['bg','fg','borderColor','borderW','radius','padding','fontSize'],
+      gallery: ['bg','borderColor','borderW','radius','gap','cols','shadow'],
+      badge:   ['bg','fg','borderColor','borderW','radius','padding','fontSize','fontWeight','pill'],
+    };
+
+    // ---- Presets (neutral = factory default) ----
+    const PRESETS = {
+      neutral: {
+        button:  { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#d4d4d4', borderW:1, radius:6,  padding:10, fontSize:14, fontWeight:'600', shadow:'soft' },
+        card:    { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#e5e5e5', borderW:1, radius:8,  padding:20, shadow:'soft' },
+        table:   { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#e5e5e5', borderW:1, radius:6,  padding:10, fontSize:14, striped:true,  rowHover:'#f5f5f5' },
+        input:   { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#d4d4d4', borderW:1, radius:6,  padding:10, fontSize:14 },
+        gallery: { bg:'#fafafa', borderColor:'#e5e5e5', borderW:1, radius:8,  gap:10, cols:3, shadow:'none' },
+        badge:   { bg:'#1a1a1a', fg:'#ffffff', borderColor:'#1a1a1a', borderW:0, radius:4,  padding:5,  fontSize:12, fontWeight:'700', pill:false },
+      },
+      solhann: {
+        button:  { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:11, fontSize:14, fontWeight:'700', shadow:'hard-offset' },
+        card:    { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:8,  padding:20, shadow:'hard-offset' },
+        table:   { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:10, fontSize:14, striped:true,  rowHover:'#FFB84D' },
+        input:   { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:10, fontSize:15 },
+        gallery: { bg:'#fffaf0', borderColor:'#2b2b29', borderW:3, radius:8,  gap:12, cols:3, shadow:'hard-offset' },
+        badge:   { bg:'#D56062', fg:'#ffffff', borderColor:'#2b2b29', borderW:3, radius:6,  padding:7,  fontSize:11, fontWeight:'700', pill:false },
+      },
+      brutalist: {
+        button:  { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:12, fontSize:14, fontWeight:'900', shadow:'hard-offset' },
+        card:    { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:20, shadow:'hard-offset' },
+        table:   { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:10, fontSize:14, striped:false, rowHover:'#ffe600' },
+        input:   { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:11, fontSize:15 },
+        gallery: { bg:'#ffffff', borderColor:'#000000', borderW:4, radius:0,  gap:8,  cols:3, shadow:'hard-offset' },
+        badge:   { bg:'#ffe600', fg:'#000000', borderColor:'#000000', borderW:3, radius:0,  padding:7,  fontSize:12, fontWeight:'900', pill:false },
+      },
+      minimal: {
+        button:  { bg:'#f4f4f5', fg:'#18181b', borderColor:'#e4e4e7', borderW:0, radius:8,  padding:12, fontSize:14, fontWeight:'600', shadow:'none' },
+        card:    { bg:'#ffffff', fg:'#18181b', borderColor:'#f4f4f5', borderW:0, radius:12, padding:28, shadow:'none' },
+        table:   { bg:'#ffffff', fg:'#18181b', borderColor:'#f4f4f5', borderW:0, radius:8,  padding:14, fontSize:14, striped:false, rowHover:'#fafafa' },
+        input:   { bg:'#f4f4f5', fg:'#18181b', borderColor:'#e4e4e7', borderW:0, radius:8,  padding:12, fontSize:14 },
+        gallery: { bg:'#ffffff', borderColor:'#f4f4f5', borderW:0, radius:12, gap:14, cols:3, shadow:'none' },
+        badge:   { bg:'#f4f4f5', fg:'#52525b', borderColor:'#f4f4f5', borderW:0, radius:999, padding:6, fontSize:11, fontWeight:'600', pill:true },
+      },
+      material: {
+        button:  { bg:'#6750A4', fg:'#ffffff', borderColor:'#6750A4', borderW:0, radius:8,  padding:11, fontSize:14, fontWeight:'600', shadow:'lifted' },
+        card:    { bg:'#ffffff', fg:'#1c1b1f', borderColor:'#e7e0ec', borderW:1, radius:12, padding:20, shadow:'lifted' },
+        table:   { bg:'#ffffff', fg:'#1c1b1f', borderColor:'#e7e0ec', borderW:1, radius:8,  padding:12, fontSize:14, striped:false, rowHover:'#f3edf7' },
+        input:   { bg:'#ffffff', fg:'#1c1b1f', borderColor:'#79747e', borderW:1, radius:4,  padding:12, fontSize:15 },
+        gallery: { bg:'#fef7ff', borderColor:'#e7e0ec', borderW:1, radius:12, gap:12, cols:3, shadow:'lifted' },
+        badge:   { bg:'#EADDFF', fg:'#21005D', borderColor:'#EADDFF', borderW:0, radius:8,  padding:6,  fontSize:11, fontWeight:'600', pill:false },
+      },
+    };
+
+    const SHADOW = (preset, color) => {
+      switch(preset){
+        case 'none':         return 'none';
+        case 'soft':         return '0 2px 8px rgba(0,0,0,.12)';
+        case 'hard-offset':  return `3px 3px 0 ${color}`;
+        case 'lifted':       return '0 6px 18px rgba(0,0,0,.18)';
+        default:             return 'none';
+      }
+    };
+
+    // ---- State (loaded from localStorage, falling back to neutral preset) ----
+    const STORE_KEY = 'style_lab_state_v1';
+    function defaultState(){
+      return { selected:'button', preset:'neutral', outputMode:'raw',
+        elements: JSON.parse(JSON.stringify(PRESETS.neutral)) };
+    }
+    function loadState(){
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return defaultState();
+        const s = JSON.parse(raw);
+        const d = defaultState();
+        // shape-guard: fill missing element keys / control keys
+        for (const el of Object.keys(d.elements)) {
+          s.elements = s.elements || {};
+          s.elements[el] = Object.assign({}, d.elements[el], s.elements[el] || {});
+        }
+        s.selected   = s.selected   || d.selected;
+        s.preset     = s.preset     || d.preset;
+        s.outputMode = s.outputMode || d.outputMode;
+        return s;
+      } catch(_) { return defaultState(); }
+    }
+    function persist(){
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(_){}
+    }
+    const state = loadState();
+
+    // ---- Rule builder ----
+    function buildRules(s) {
+      const e = s.elements;
+      const rules = [];
+
+      const b = e.button;
+      rules.push({ sel:'.sl-button', decls:[
+        `background: ${b.bg}`,
+        `color: ${b.fg}`,
+        `border: ${b.borderW}px solid ${b.borderColor}`,
+        `border-radius: ${b.radius}px`,
+        `padding: ${b.padding}px ${Math.round(b.padding*1.6)}px`,
+        `font: ${b.fontWeight} ${b.fontSize}px/1.2 inherit`,
+        `cursor: pointer`,
+        `box-shadow: ${SHADOW(b.shadow, b.borderColor)}`,
+      ]});
+
+      const c = e.card;
+      rules.push({ sel:'.sl-card', decls:[
+        `background: ${c.bg}`,
+        `color: ${c.fg}`,
+        `border: ${c.borderW}px solid ${c.borderColor}`,
+        `border-radius: ${c.radius}px`,
+        `padding: ${c.padding}px`,
+        `box-shadow: ${SHADOW(c.shadow, c.borderColor)}`,
+      ]});
+
+      const t = e.table;
+      rules.push({ sel:'.sl-table', decls:[
+        `width: 100%`,
+        `border-collapse: separate`,
+        `border-spacing: 0`,
+        `background: ${t.bg}`,
+        `color: ${t.fg}`,
+        `border: ${t.borderW}px solid ${t.borderColor}`,
+        `border-radius: ${t.radius}px`,
+        `font-size: ${t.fontSize}px`,
+        `overflow: hidden`,
+      ]});
+      rules.push({ sel:'.sl-table th, .sl-table td', decls:[
+        `padding: ${t.padding}px`,
+        `text-align: left`,
+        `border-bottom: 1px solid ${t.borderColor}`,
+      ]});
+      rules.push({ sel:'.sl-table tr:last-child td', decls:[`border-bottom: 0`] });
+      rules.push({ sel:'.sl-table th', decls:[`font-weight: 700`] });
+      if (t.striped) {
+        rules.push({ sel:'.sl-table tbody tr:nth-child(even)', decls:[`background: rgba(0,0,0,.04)`] });
+      }
+      rules.push({ sel:'.sl-table tbody tr:hover', decls:[`background: ${t.rowHover}`] });
+
+      const i = e.input;
+      rules.push({ sel:'.sl-input', decls:[
+        `background: ${i.bg}`,
+        `color: ${i.fg}`,
+        `border: ${i.borderW}px solid ${i.borderColor}`,
+        `border-radius: ${i.radius}px`,
+        `padding: ${i.padding}px ${Math.round(i.padding*1.2)}px`,
+        `font-size: ${i.fontSize}px`,
+        `font-family: inherit`,
+        `width: 100%`,
+        `outline: none`,
+      ]});
+
+      const g = e.gallery;
+      rules.push({ sel:'.sl-gallery', decls:[
+        `display: grid`,
+        `grid-template-columns: repeat(${g.cols}, 1fr)`,
+        `gap: ${g.gap}px`,
+        `background: ${g.bg}`,
+        `border: ${g.borderW}px solid ${g.borderColor}`,
+        `border-radius: ${g.radius}px`,
+        `padding: ${g.gap}px`,
+        `box-shadow: ${SHADOW(g.shadow, g.borderColor)}`,
+      ]});
+      rules.push({ sel:'.sl-gallery > *', decls:[
+        `aspect-ratio: 1 / 1`,
+        `border-radius: ${Math.max(0, g.radius-2)}px`,
+        `background: linear-gradient(135deg, #94c5fd, #d3a3ff)`,
+      ]});
+
+      const bd = e.badge;
+      const badgeRadius = bd.pill ? 999 : bd.radius;
+      rules.push({ sel:'.sl-badge', decls:[
+        `display: inline-block`,
+        `background: ${bd.bg}`,
+        `color: ${bd.fg}`,
+        `border: ${bd.borderW}px solid ${bd.borderColor}`,
+        `border-radius: ${badgeRadius}px`,
+        `padding: ${bd.padding}px ${Math.round(bd.padding*1.8)}px`,
+        `font: ${bd.fontWeight} ${bd.fontSize}px/1 inherit`,
+        `letter-spacing: .02em`,
+      ]});
+
+      return rules;
+    }
+
+    // ---- Token builder (color/numeric props only) ----
+    const TOKENIZE = {
+      button:  ['bg','fg','borderColor','borderW','radius','padding','fontSize','fontWeight'],
+      card:    ['bg','fg','borderColor','borderW','radius','padding'],
+      table:   ['bg','fg','borderColor','borderW','radius','padding','fontSize','rowHover'],
+      input:   ['bg','fg','borderColor','borderW','radius','padding','fontSize'],
+      gallery: ['bg','borderColor','borderW','radius','gap'],
+      badge:   ['bg','fg','borderColor','borderW','radius','padding','fontSize','fontWeight'],
+    };
+    function buildTokens(s) {
+      const out = {};
+      for (const [el, keys] of Object.entries(TOKENIZE)) {
+        for (const k of keys) {
+          const v = s.elements[el][k];
+          const unit = (typeof v === 'number') ? (['borderW','radius','padding','fontSize','gap'].includes(k) ? 'px' : '') : '';
+          out[`--sl-${el}-${kebab(k)}`] = unit ? `${v}${unit}` : `${v}`;
+        }
+      }
+      return out;
+    }
+    function kebab(s){ return s.replace(/[A-Z]/g, m => '-' + m.toLowerCase()); }
+
+    // ---- Serializers ----
+    function serialize(rules, opts={}) {
+      const scope = opts.scope || '';
+      return rules.map(r => {
+        const sel = scope
+          ? r.sel.split(',').map(x => scope + ' ' + x.trim()).join(',\n')
+          : r.sel;
+        return `${sel} {\n  ${r.decls.join(';\n  ')};\n}`;
+      }).join('\n\n');
+    }
+    function serializeTokens(tokens, hostSelector) {
+      const lines = Object.entries(tokens).map(([k,v]) => `  ${k}: ${v};`);
+      return `${hostSelector} {\n${lines.join('\n')}\n}`;
+    }
+    function generateOutput(s) {
+      const rules = buildRules(s);
+      if (s.outputMode === 'tokens') {
+        const tokens = buildTokens(s);
+        return serializeTokens(tokens, ':root') + '\n\n' + serialize(rules);
+      }
+      return serialize(rules);
+    }
+    function generateScoped(s) {
+      const rules = buildRules(s);
+      // tokens mode doesn't need a separate host vars block for live preview — rules use literal values
+      return serialize(rules, { scope: '.sl-preview-surface' });
+    }
+
+    // ---- Preview DOM per element ----
+    const previewSurface = $('previewSurface');
+    function renderPreview() {
+      previewSurface.innerHTML = '';
+      const el = state.selected;
+      const make = (tag, cls, txt) => { const n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; };
+
+      if (el === 'button') {
+        const row = make('div','preview-row');
+        row.appendChild(make('button','sl-button','PRIMARY'));
+        row.appendChild(make('button','sl-button','Secondary'));
+        row.appendChild(make('button','sl-button','Disabled'));
+        previewSurface.appendChild(row);
+      } else if (el === 'card') {
+        const c = make('div','sl-card');
+        c.appendChild(make('h3', null, 'Card title'));
+        const p = make('p', null, 'Cards group related content. Drop one of these into your layout to break up a long page or highlight a feature.');
+        p.style.marginTop = '8px'; p.style.lineHeight = '1.5';
+        c.appendChild(p);
+        const b = make('button','sl-button','Action');
+        b.style.marginTop = '14px';
+        c.appendChild(b);
+        previewSurface.appendChild(c);
+      } else if (el === 'table') {
+        const tbl = make('table','sl-table');
+        const th = document.createElement('thead');
+        th.innerHTML = '<tr><th>Name</th><th>Status</th><th>Updated</th></tr>';
+        const tb = document.createElement('tbody');
+        const rows = [
+          ['Onboarding flow','Live','2 hours ago'],
+          ['Pricing page','Draft','Yesterday'],
+          ['Auth refactor','Live','Last week'],
+          ['Search rebuild','Paused','Mar 12'],
+        ];
+        rows.forEach(r => {
+          const tr=document.createElement('tr');
+          r.forEach(c => { const td=document.createElement('td'); td.textContent=c; tr.appendChild(td); });
+          tb.appendChild(tr);
+        });
+        tbl.appendChild(th); tbl.appendChild(tb);
+        previewSurface.appendChild(tbl);
+      } else if (el === 'input') {
+        const wrap = make('div', null);
+        const lab = make('label', null, 'Email address');
+        lab.style.fontSize='13px'; lab.style.display='block'; lab.style.marginBottom='6px'; lab.style.color='#555';
+        const inp = make('input','sl-input');
+        inp.setAttribute('type','email'); inp.setAttribute('placeholder','you@example.com');
+        wrap.appendChild(lab); wrap.appendChild(inp);
+        previewSurface.appendChild(wrap);
+      } else if (el === 'gallery') {
+        const g = make('div','sl-gallery');
+        for (let i=0; i<6; i++) g.appendChild(make('div',null,''));
+        previewSurface.appendChild(g);
+      } else if (el === 'badge') {
+        const row = make('div','preview-row');
+        ['New','Beta','12','Archived'].forEach(t => row.appendChild(make('span','sl-badge',t)));
+        previewSurface.appendChild(row);
+      }
+    }
+
+    // ---- Controls panel ----
+    const controlsEl = $('controls');
+    function renderControls() {
+      controlsEl.innerHTML = '';
+      const keys = SCHEMA[state.selected];
+      for (const key of keys) {
+        const def = CONTROLS[key];
+        const cur = state.elements[state.selected][key];
+        const node = renderControl(key, def, cur);
+        controlsEl.appendChild(node);
+      }
+    }
+    function renderControl(key, def, value) {
+      const wrap = document.createElement('div');
+      if (def.type === 'toggle') {
+        wrap.className = 'control toggle-row';
+        const id = 'ctrl_' + key;
+        wrap.innerHTML = `<label for="${id}">${def.label}</label>`;
+        const inp = document.createElement('input');
+        inp.type = 'checkbox'; inp.id = id; inp.checked = !!value;
+        inp.oninput = () => { state.elements[state.selected][key] = inp.checked; scheduleRender(); };
+        wrap.appendChild(inp);
+        return wrap;
+      }
+      wrap.className = 'control';
+      if (def.type === 'color') {
+        wrap.innerHTML = `<label>${def.label} <span class="val"><code>${value}</code></span></label>`;
+        const row = document.createElement('div'); row.className = 'color-row';
+        const inp = document.createElement('input'); inp.type = 'color'; inp.value = value;
+        inp.oninput = () => { state.elements[state.selected][key] = inp.value; wrap.querySelector('.val code').textContent = inp.value; scheduleRender(); };
+        row.appendChild(inp);
+        wrap.appendChild(row);
+        return wrap;
+      }
+      if (def.type === 'range') {
+        const valSpan = `<span class="val">${value}${def.suffix||''}</span>`;
+        wrap.innerHTML = `<label>${def.label} ${valSpan}</label>`;
+        const inp = document.createElement('input'); inp.type = 'range';
+        inp.min = def.min; inp.max = def.max; inp.step = def.step || 1; inp.value = value;
+        inp.oninput = () => {
+          const v = parseInt(inp.value, 10);
+          state.elements[state.selected][key] = v;
+          wrap.querySelector('.val').textContent = v + (def.suffix||'');
+          scheduleRender();
+        };
+        wrap.appendChild(inp);
+        return wrap;
+      }
+      if (def.type === 'select') {
+        wrap.innerHTML = `<label>${def.label}</label>`;
+        const sel = document.createElement('select');
+        for (const o of def.options) {
+          const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
+          if (String(o) === String(value)) opt.selected = true;
+          sel.appendChild(opt);
+        }
+        sel.onchange = () => { state.elements[state.selected][key] = sel.value; scheduleRender(); };
+        wrap.appendChild(sel);
+        return wrap;
+      }
+      return wrap;
+    }
+
+    // ---- Element rail ----
+    const elementListEl = $('elementList');
+    function renderElementList() {
+      elementListEl.innerHTML = '';
+      for (const el of ELEMENTS) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'el-btn' + (state.selected === el.key ? ' on' : '');
+        btn.innerHTML = `<span class="glyph">${el.glyph}</span><span>${el.label}</span>`;
+        btn.onclick = () => { state.selected = el.key; render(); };
+        elementListEl.appendChild(btn);
+      }
+    }
+
+    // ---- Live <style> tag ----
+    const liveStyle = document.createElement('style');
+    liveStyle.id = 'sl-live';
+    document.head.appendChild(liveStyle);
+
+    // ---- Top-level render w/ rAF coalescing ----
+    let pending = false;
+    function scheduleRender() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => { pending = false; render(); });
+    }
+    function render() {
+      renderElementList();
+      renderControls();
+      renderPreview();
+      const out = generateOutput(state);
+      liveStyle.textContent = generateScoped(state);
+      $('codeOut').textContent = out;
+      $('canvasTitle').textContent = '▸ ' + (ELEMENTS.find(e => e.key === state.selected)?.label || 'PREVIEW');
+      persist();
+    }
+
+    // ---- Topbar wiring ----
+    const presetSel = $('presetSel');
+    presetSel.value = state.preset;
+    presetSel.onchange = () => {
+      const p = presetSel.value;
+      state.preset = p;
+      // overwrite ALL elements so the sheet is cohesive
+      state.elements = JSON.parse(JSON.stringify(PRESETS[p]));
+      render();
+    };
+
+    const modeSeg = $('modeSeg');
+    modeSeg.querySelectorAll('button').forEach(b => {
+      if (b.dataset.mode === state.outputMode) b.classList.add('on'); else b.classList.remove('on');
+      b.onclick = () => {
+        state.outputMode = b.dataset.mode;
+        modeSeg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        render();
+      };
+    });
+
+    // ---- Copy ----
+    const toast = $('toast');
+    function showToast(msg, isErr=false) {
+      toast.textContent = msg;
+      toast.classList.toggle('err', isErr);
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1400);
+    }
+    async function copyCSS() {
+      const text = $('codeOut').textContent;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px';
+          document.body.appendChild(ta); ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          if (!ok) throw new Error('execCommand failed');
+        }
+        showToast('COPIED ✓');
+      } catch (e) {
+        showToast('COPY FAILED — SELECT MANUALLY', true);
+        const range = document.createRange();
+        range.selectNodeContents($('codeOut'));
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      }
+    }
+    $('copyTop').onclick = copyCSS;
+    $('copyBottom').onclick = copyCSS;
+
+    render();
+  })();
   </script>
 </body>
 </html>
