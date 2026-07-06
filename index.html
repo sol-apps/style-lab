@@ -176,6 +176,7 @@
 
     // ---- Element list, schema, defaults ----
     const ELEMENTS = [
+      { key:'heading', label:'TEXT',    glyph:'A' },
       { key:'button',  label:'BUTTON',  glyph:'◧' },
       { key:'card',    label:'CARD',    glyph:'▢' },
       { key:'table',   label:'TABLE',   glyph:'☷' },
@@ -191,9 +192,13 @@
       borderW:     { type:'range',  label:'BORDER WIDTH', min:0, max:8,  step:1, suffix:'px' },
       radius:      { type:'range',  label:'RADIUS',       min:0, max:40, step:1, suffix:'px' },
       padding:     { type:'range',  label:'PADDING',      min:0, max:40, step:1, suffix:'px' },
-      fontSize:    { type:'range',  label:'FONT SIZE',    min:10, max:32, step:1, suffix:'px' },
+      fontSize:    { type:'range',  label:'FONT SIZE',    min:10, max:48, step:1, suffix:'px' },
       fontWeight:  { type:'select', label:'FONT WEIGHT',  options:['400','600','700','900'] },
       shadow:      { type:'select', label:'SHADOW',       options:['none','soft','hard-offset','lifted'] },
+      shadowStyle: { type:'select', label:'SHADOW STYLE', options:['none','hard','extruded','blur'] },
+      shadowColor: { type:'color',  label:'SHADOW COLOR' },
+      shadowOpacity:{ type:'range', label:'SHADOW OPACITY', min:0, max:100, step:1, suffix:'%' },
+      shadowOffset:{ type:'range',  label:'SHADOW OFFSET', min:0, max:10, step:1, suffix:'px' },
       striped:     { type:'toggle', label:'STRIPED ROWS' },
       rowHover:    { type:'color',  label:'ROW HOVER' },
       cols:        { type:'range',  label:'COLUMNS', min:1, max:6, step:1 },
@@ -202,6 +207,7 @@
     };
 
     const SCHEMA = {
+      heading: ['fg','fontSize','shadowStyle','shadowColor','shadowOpacity','shadowOffset'],
       button:  ['bg','fg','borderColor','borderW','radius','padding','fontSize','fontWeight','shadow'],
       card:    ['bg','fg','borderColor','borderW','radius','padding','shadow'],
       table:   ['bg','fg','borderColor','borderW','radius','padding','fontSize','striped','rowHover'],
@@ -213,6 +219,7 @@
     // ---- Presets (neutral = factory default) ----
     const PRESETS = {
       neutral: {
+        heading: { fg:'#1a1a1a', fontSize:24, shadowStyle:'none', shadowColor:'#000000', shadowOpacity:20, shadowOffset:0 },
         button:  { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#d4d4d4', borderW:1, radius:6,  padding:10, fontSize:14, fontWeight:'600', shadow:'soft' },
         card:    { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#e5e5e5', borderW:1, radius:8,  padding:20, shadow:'soft' },
         table:   { bg:'#ffffff', fg:'#1a1a1a', borderColor:'#e5e5e5', borderW:1, radius:6,  padding:10, fontSize:14, striped:true,  rowHover:'#f5f5f5' },
@@ -221,6 +228,7 @@
         badge:   { bg:'#1a1a1a', fg:'#ffffff', borderColor:'#1a1a1a', borderW:0, radius:4,  padding:5,  fontSize:12, fontWeight:'700', pill:false },
       },
       solhann: {
+        heading: { fg:'#2b2b29', fontSize:24, shadowStyle:'hard', shadowColor:'#2b2b29', shadowOpacity:100, shadowOffset:3 },
         button:  { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:11, fontSize:14, fontWeight:'700', shadow:'hard-offset' },
         card:    { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:8,  padding:20, shadow:'hard-offset' },
         table:   { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:10, fontSize:14, striped:true,  rowHover:'#FFB84D' },
@@ -229,6 +237,7 @@
         badge:   { bg:'#D56062', fg:'#ffffff', borderColor:'#2b2b29', borderW:3, radius:6,  padding:7,  fontSize:11, fontWeight:'700', pill:false },
       },
       brutalist: {
+        heading: { fg:'#000000', fontSize:26, shadowStyle:'hard', shadowColor:'#000000', shadowOpacity:100, shadowOffset:5 },
         button:  { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:12, fontSize:14, fontWeight:'900', shadow:'hard-offset' },
         card:    { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:20, shadow:'hard-offset' },
         table:   { bg:'#ffffff', fg:'#000000', borderColor:'#000000', borderW:4, radius:0,  padding:10, fontSize:14, striped:false, rowHover:'#ffe600' },
@@ -237,6 +246,7 @@
         badge:   { bg:'#ffe600', fg:'#000000', borderColor:'#000000', borderW:3, radius:0,  padding:7,  fontSize:12, fontWeight:'900', pill:false },
       },
       minimal: {
+        heading: { fg:'#18181b', fontSize:22, shadowStyle:'none', shadowColor:'#000000', shadowOpacity:15, shadowOffset:0 },
         button:  { bg:'#f4f4f5', fg:'#18181b', borderColor:'#e4e4e7', borderW:0, radius:8,  padding:12, fontSize:14, fontWeight:'600', shadow:'none' },
         card:    { bg:'#ffffff', fg:'#18181b', borderColor:'#f4f4f5', borderW:0, radius:12, padding:28, shadow:'none' },
         table:   { bg:'#ffffff', fg:'#18181b', borderColor:'#f4f4f5', borderW:0, radius:8,  padding:14, fontSize:14, striped:false, rowHover:'#fafafa' },
@@ -245,6 +255,7 @@
         badge:   { bg:'#f4f4f5', fg:'#52525b', borderColor:'#f4f4f5', borderW:0, radius:999, padding:6, fontSize:11, fontWeight:'600', pill:true },
       },
       material: {
+        heading: { fg:'#1c1b1f', fontSize:22, shadowStyle:'blur', shadowColor:'#000000', shadowOpacity:25, shadowOffset:3 },
         button:  { bg:'#6750A4', fg:'#ffffff', borderColor:'#6750A4', borderW:0, radius:8,  padding:11, fontSize:14, fontWeight:'600', shadow:'lifted' },
         card:    { bg:'#ffffff', fg:'#1c1b1f', borderColor:'#e7e0ec', borderW:1, radius:12, padding:20, shadow:'lifted' },
         table:   { bg:'#ffffff', fg:'#1c1b1f', borderColor:'#e7e0ec', borderW:1, radius:8,  padding:12, fontSize:14, striped:false, rowHover:'#f3edf7' },
@@ -252,6 +263,35 @@
         gallery: { bg:'#fef7ff', borderColor:'#e7e0ec', borderW:1, radius:12, gap:12, cols:3, shadow:'lifted' },
         badge:   { bg:'#EADDFF', fg:'#21005D', borderColor:'#EADDFF', borderW:0, radius:8,  padding:6,  fontSize:11, fontWeight:'600', pill:false },
       },
+    };
+
+    // Heading style presets. CURRENT = the site's h1 today (shadow is the same
+    // color as the text, which is why it reads as a misprint). The other three
+    // are candidate replacements.
+    const HEADING_PRESETS = {
+      CURRENT: { fg:'#2b2b29', fontSize:24, shadowStyle:'hard',     shadowColor:'#2b2b29', shadowOpacity:100, shadowOffset:3 },
+      GHOST:   { fg:'#2b2b29', fontSize:24, shadowStyle:'hard',     shadowColor:'#000000', shadowOpacity:18,  shadowOffset:4 },
+      POP:     { fg:'#2b2b29', fontSize:24, shadowStyle:'extruded', shadowColor:'#D56062', shadowOpacity:100, shadowOffset:4 },
+      BLUR:    { fg:'#2b2b29', fontSize:24, shadowStyle:'blur',     shadowColor:'#000000', shadowOpacity:30,  shadowOffset:4 },
+    };
+
+    const withAlpha = (hex, pct) => {
+      if (pct >= 100) return hex;
+      const n = parseInt(hex.slice(1), 16), r = n>>16&255, g = n>>8&255, b = n&255;
+      return `rgba(${r},${g},${b},${(pct/100).toFixed(2)})`;
+    };
+    const TEXT_SHADOW = h => {
+      const c = withAlpha(h.shadowColor, h.shadowOpacity), o = h.shadowOffset;
+      switch(h.shadowStyle){
+        case 'hard':     return o ? `${o}px ${o}px 0 ${c}` : 'none';
+        case 'extruded': {
+          const steps = [];
+          for (let i = 1; i <= o; i++) steps.push(`${i}px ${i}px 0 ${c}`);
+          return steps.length ? steps.join(', ') : 'none';
+        }
+        case 'blur':     return o ? `0 ${o}px ${o*2}px ${c}` : 'none';
+        default:         return 'none';
+      }
     };
 
     const SHADOW = (preset, color) => {
@@ -267,7 +307,7 @@
     // ---- State (loaded from localStorage, falling back to neutral preset) ----
     const STORE_KEY = 'style_lab_state_v1';
     function defaultState(){
-      return { selected:'button', preset:'neutral', outputMode:'raw',
+      return { selected:'heading', preset:'neutral', outputMode:'raw',
         elements: JSON.parse(JSON.stringify(PRESETS.neutral)) };
     }
     function loadState(){
@@ -297,6 +337,15 @@
       const e = s.elements;
       const rules = [];
 
+      const h = e.heading;
+      rules.push({ sel:'.sl-heading', decls:[
+        `font-family: "Press Start 2P", monospace`,
+        `font-size: ${h.fontSize}px`,
+        `line-height: 1.4`,
+        `color: ${h.fg}`,
+        `text-shadow: ${TEXT_SHADOW(h)}`,
+      ]});
+
       const b = e.button;
       rules.push({ sel:'.sl-button', decls:[
         `background: ${b.bg}`,
@@ -304,7 +353,10 @@
         `border: ${b.borderW}px solid ${b.borderColor}`,
         `border-radius: ${b.radius}px`,
         `padding: ${b.padding}px ${Math.round(b.padding*1.6)}px`,
-        `font: ${b.fontWeight} ${b.fontSize}px/1.2 inherit`,
+        `font-family: inherit`,
+        `font-size: ${b.fontSize}px`,
+        `font-weight: ${b.fontWeight}`,
+        `line-height: 1.2`,
         `cursor: pointer`,
         `box-shadow: ${SHADOW(b.shadow, b.borderColor)}`,
       ]});
@@ -382,7 +434,10 @@
         `border: ${bd.borderW}px solid ${bd.borderColor}`,
         `border-radius: ${badgeRadius}px`,
         `padding: ${bd.padding}px ${Math.round(bd.padding*1.8)}px`,
-        `font: ${bd.fontWeight} ${bd.fontSize}px/1 inherit`,
+        `font-family: inherit`,
+        `font-size: ${bd.fontSize}px`,
+        `font-weight: ${bd.fontWeight}`,
+        `line-height: 1`,
         `letter-spacing: .02em`,
       ]});
 
@@ -391,6 +446,7 @@
 
     // ---- Token builder (color/numeric props only) ----
     const TOKENIZE = {
+      heading: ['fg','fontSize','shadowColor','shadowOffset'],
       button:  ['bg','fg','borderColor','borderW','radius','padding','fontSize','fontWeight'],
       card:    ['bg','fg','borderColor','borderW','radius','padding'],
       table:   ['bg','fg','borderColor','borderW','radius','padding','fontSize','rowHover'],
@@ -403,7 +459,7 @@
       for (const [el, keys] of Object.entries(TOKENIZE)) {
         for (const k of keys) {
           const v = s.elements[el][k];
-          const unit = (typeof v === 'number') ? (['borderW','radius','padding','fontSize','gap'].includes(k) ? 'px' : '') : '';
+          const unit = (typeof v === 'number') ? (['borderW','radius','padding','fontSize','gap','shadowOffset'].includes(k) ? 'px' : '') : '';
           out[`--sl-${el}-${kebab(k)}`] = unit ? `${v}${unit}` : `${v}`;
         }
       }
@@ -446,7 +502,18 @@
       const el = state.selected;
       const make = (tag, cls, txt) => { const n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; };
 
-      if (el === 'button') {
+      if (el === 'heading') {
+        // shown on the real page background so shadows are judged in context
+        const wrap = make('div', null);
+        wrap.style.background = 'var(--bg)'; wrap.style.padding = '30px 22px';
+        wrap.style.borderRadius = '8px'; wrap.style.textAlign = 'center';
+        wrap.appendChild(make('div','sl-heading','STYLE LAB'));
+        const sub = make('div', null, 'Tweak. Preview. Copy.');
+        sub.style.marginTop = '14px'; sub.style.fontSize = '13px';
+        sub.style.color = 'var(--ink)'; sub.style.opacity = '.65';
+        wrap.appendChild(sub);
+        previewSurface.appendChild(wrap);
+      } else if (el === 'button') {
         const row = make('div','preview-row');
         row.appendChild(make('button','sl-button','PRIMARY'));
         row.appendChild(make('button','sl-button','Secondary'));
@@ -503,6 +570,7 @@
     const controlsEl = $('controls');
     function renderControls() {
       controlsEl.innerHTML = '';
+      if (state.selected === 'heading') controlsEl.appendChild(renderHeadingPresets());
       const keys = SCHEMA[state.selected];
       for (const key of keys) {
         const def = CONTROLS[key];
@@ -510,6 +578,22 @@
         const node = renderControl(key, def, cur);
         controlsEl.appendChild(node);
       }
+    }
+    function renderHeadingPresets() {
+      const wrap = document.createElement('div');
+      wrap.className = 'control';
+      const lab = document.createElement('label'); lab.textContent = 'STYLE PRESET';
+      wrap.appendChild(lab);
+      const seg = document.createElement('div'); seg.className = 'seg';
+      const cur = JSON.stringify(state.elements.heading);
+      for (const [name, def] of Object.entries(HEADING_PRESETS)) {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = name;
+        if (JSON.stringify(def) === cur) b.classList.add('on');
+        b.onclick = () => { state.elements.heading = JSON.parse(JSON.stringify(def)); scheduleRender(); };
+        seg.appendChild(b);
+      }
+      wrap.appendChild(seg);
+      return wrap;
     }
     function renderControl(key, def, value) {
       const wrap = document.createElement('div');
