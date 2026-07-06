@@ -28,7 +28,7 @@
     .topbar .brand{ display:flex; align-items:center; gap:10px; }
     .topbar .brand .emoji{ font-size:36px; filter:drop-shadow(3px 4px 0 rgba(0,0,0,.18)); }
     .topbar h1{ font-family:"Press Start 2P",monospace; font-size:clamp(.85rem,2vw,1.05rem); line-height:1.3;
-      text-shadow:3px 3px 0 var(--line); }
+      text-shadow:3px 3px 0 rgba(0,0,0,.18); }
     .topbar .sub{ color:var(--muted); font-size:12px; margin-top:4px; }
     .topbar .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-left:auto; }
 
@@ -228,7 +228,7 @@
         badge:   { bg:'#1a1a1a', fg:'#ffffff', borderColor:'#1a1a1a', borderW:0, radius:4,  padding:5,  fontSize:12, fontWeight:'700', pill:false },
       },
       solhann: {
-        heading: { fg:'#2b2b29', fontSize:24, shadowStyle:'hard', shadowColor:'#2b2b29', shadowOpacity:100, shadowOffset:3 },
+        heading: { fg:'#2b2b29', fontSize:24, shadowStyle:'hard', shadowColor:'#000000', shadowOpacity:18, shadowOffset:4 },
         button:  { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:11, fontSize:14, fontWeight:'700', shadow:'hard-offset' },
         card:    { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:8,  padding:20, shadow:'hard-offset' },
         table:   { bg:'#fffaf0', fg:'#2b2b29', borderColor:'#2b2b29', borderW:3, radius:6,  padding:10, fontSize:14, striped:true,  rowHover:'#FFB84D' },
@@ -265,12 +265,11 @@
       },
     };
 
-    // Heading style presets. CURRENT = the site's h1 today (shadow is the same
-    // color as the text, which is why it reads as a misprint). The other three
-    // are candidate replacements.
+    // Heading style presets. GHOST shipped across the sites (2026-07-06);
+    // LEGACY is the old same-color hard offset that read as a misprint.
     const HEADING_PRESETS = {
-      CURRENT: { fg:'#2b2b29', fontSize:24, shadowStyle:'hard',     shadowColor:'#2b2b29', shadowOpacity:100, shadowOffset:3 },
       GHOST:   { fg:'#2b2b29', fontSize:24, shadowStyle:'hard',     shadowColor:'#000000', shadowOpacity:18,  shadowOffset:4 },
+      LEGACY:  { fg:'#2b2b29', fontSize:24, shadowStyle:'hard',     shadowColor:'#2b2b29', shadowOpacity:100, shadowOffset:3 },
       POP:     { fg:'#2b2b29', fontSize:24, shadowStyle:'extruded', shadowColor:'#D56062', shadowOpacity:100, shadowOffset:4 },
       BLUR:    { fg:'#2b2b29', fontSize:24, shadowStyle:'blur',     shadowColor:'#000000', shadowOpacity:30,  shadowOffset:4 },
     };
